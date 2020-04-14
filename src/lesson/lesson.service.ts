@@ -1,4 +1,4 @@
-import { CreateLessonInput } from './lesson.input';
+import { CreateLessonInput, AddStudentsToLessonInput } from './lesson.input';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Lesson } from './lesson.entity';
@@ -20,14 +20,23 @@ export class LessonService {
     }
 
     async createLesson(createLessonInput: CreateLessonInput): Promise<Lesson> {
-        const {name, startDate, endDate} = createLessonInput;
-        const lesson = this.repository.create({
+        const {name, startDate, endDate, students} = createLessonInput;
+        const lesson: Lesson = this.repository.create({
             id: uuid(),
             name,
             startDate,
-            endDate
+            endDate,
+            students
         })
 
         return this.repository.save(lesson)
+    }
+    
+    async addStudentsToLesson(addStudentsToLessonInput: AddStudentsToLessonInput): Promise<Lesson> {
+        const {lessonId, studentIds} = addStudentsToLessonInput
+        const lesson = await this.getLesson(lessonId);
+        lesson.students = [...lesson.students, ...studentIds]
+
+        return this.repository.save(lesson);
     }
 }
